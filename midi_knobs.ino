@@ -1,17 +1,22 @@
 /*
    simple MIDI knob controller.
-   
+
    based on http://www.arduino.cc/en/Tutorial/MidiDevice
 */
 
 #include "MIDIUSB.h"
 
-const int pot1pin = 0;  //A0 input
+#define N_POTS 5
 
-// TODO: array of pots
-uint8_t potValue1;
-uint8_t pot1CC = 0x0A;
-uint8_t previousValue1 = 0x00;
+
+const uint8_t MIDICC = 0x0B;
+
+const int potPin[] = {0, 1, 2, 3, 4};  // Pot pins
+const uint8_t potCN[] = {0x0A, 0x0B, 0x0C, 0x0D, 0x0E};  // MIDI control values
+
+uint8_t potValues[N_POTS];  // Initial values
+uint8_t potValuePrev[] = {0, 0, 0, 0, 0}; // previous values for comparison
+
 
 void setup() {
 }
@@ -23,8 +28,10 @@ void loop() {
 }
 
 void readPots() {
-  int val = analogRead(pot1pin);
-  potValue1 = (uint8_t) (map(val, 0, 1023, 0, 127));
+  for (int i=0; i < N_POTS; i++) {
+    int val = analogRead(potPin[i]);
+    potValues[i] = (uint8_t) (map(val, 0, 1023, 0, 127));
+  }
 }
 
 // First parameter is the event type (0x0B = control change).
@@ -38,10 +45,12 @@ void controlChange(byte channel, byte control, byte value) {
 
 void sendMIDI()
 {
-  if (previousValue1 != potValue1)
-  {
-    previousValue1 = potValue1;
-    controlChange(0, pot1CC, potValue1);
+  for (int i=0; i < N_POTS; i++) {
+    if (potValuePrev[i] != potValues[i])
+    {
+      potValuePrev[i] = potValues[i];
+      controlChange(0, potCN[i], potValues[i]);
+    }
   }
 }
 
