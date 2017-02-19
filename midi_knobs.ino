@@ -46,7 +46,9 @@ void controlChange(byte channel, byte control, byte value) {
 void sendMIDI()
 {
   for (int i=0; i < N_POTS; i++) {
-    if (potValuePrev[i] != potValues[i])
+    // Pots seem noisy .. this isn't an optimal solution though...
+    if (abs(potValuePrev[i] - potValues[i]) > 1)
+    // if (potValuePrev[i] != potValues[i])
     {
       potValuePrev[i] = potValues[i];
       controlChange(0, potCN[i], potValues[i]);
